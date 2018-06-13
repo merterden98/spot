@@ -27,17 +27,57 @@ class Spot():
         "Scope {}\n".format(self.scope) +\
         "Token {}\n".format(self.token)
 
+    #Parses Through returned JSON to add to myPlaylist info Dict
     def my_playlists(self, **kwargs):
         playlists = self.sp.current_user_playlists()
+        l = []
         for items in playlists['items']:
             info = (items['name'], items['id'], items['uri'])
             id = splicename(items['uri'])
-            #tracks = self.sp.user_playlist_tracks()
-                
+            tracks = self.sp.user_playlist_tracks(id, items['id'])
+            songs = []
+            for song in tracks['items']:
+                songs.append((song['track']['name'], song['track']['id']))
+            l.append({info : songs})
+        self.info["myPlaylists"] = l
                  
-    def get_info(self, **kwargs):
-        print(self.info['myplaylists'])
+    def get_playlist(self, *args, **kwargs):
+        
+        playlist = []
 
+        if len(args) == 0:
+            try: 
+                for pl in self.info["myPlaylists"]:
+                    dtup = [*pl]
+                    dtup = dtup[0]
+                    dtup = [dtup[i] for i in range(len(dtup))]
+                    if  'uri' not in kwargs or kwargs['uri'] == False:
+                        del dtup[2]
+                    if 'id' not in kwargs or kwargs['id'] == False:
+                        del dtup[1]
+                    tmpl = [l for l in pl.values()]
+                    playlist.append([dtup, tmpl])
+                return playlist
+            except:
+                print("Playlist Instance Does not Exist")
+        
+        else:
+            argl = [v for v in args]
+            print(argl)
+            for pl in self.info["myPlaylists"]:
+                dtup = [*pl]
+                dtup = dtup[0]
+                dtup = [dtup[i] for i in range(len(dtup))]
+                if dtup[0] in argl or dtup[1] in argl:
+                    if  'uri' not in kwargs or kwargs['uri'] == False:
+                        del dtup[2]
+                    if 'id' not in kwargs or kwargs['id'] == False:
+                        del dtup[1]
+                    tmpl = [l for l in pl.values()]
+                    playlist.append([dtup, tmpl])
+                else:
+                    pass
+            return playlist
 
 
 def splicename(uri):
