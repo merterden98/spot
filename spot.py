@@ -31,7 +31,22 @@ class Spot():
         playlists = self.sp.current_user_playlists()
         for items in playlists['items']:
             info = (items['name'], items['id'], items['uri'])
-            print(info)
+            id = splicename(items['uri'])
+            #tracks = self.sp.user_playlist_tracks()
+                
+                 
+    def get_info(self, **kwargs):
+        print(self.info['myplaylists'])
+
+
+
+def splicename(uri):
+        concaturi = uri[13:]
+        i = 0
+        while concaturi[i] != ':':
+            i += 1
+        concaturi = concaturi[:i]
+        return concaturi
         
 
 s = Spot("1295709267")
