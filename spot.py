@@ -4,6 +4,7 @@ import spotipy
 import pprint
 import json
 import os
+import types
 
 #1295709267
 
@@ -40,8 +41,28 @@ class Spot():
                 songs.append((song['track']['name'], song['track']['id']))
             l.append({info : songs})
         self.info["myPlaylists"] = l
-                 
-    def get_playlist(self, *args, **kwargs):
+
+    def user_playlists(self, **kwargs):
+        #assert('user' in kwargs == False)
+        playlists = self.sp.user_playlists(user=kwargs['user'])
+        l = []
+        for items in playlists['items']:
+            info = (items['name'], items['id'], items['uri'])
+            id = splicename(items['uri'])
+            tracks = self.sp.user_playlist_tracks(id, items['id'])
+            songs = []
+            for song in tracks['items']:
+                if song['track'] is None:
+                    pass
+                else:
+                    songs.append((song['track']['name'], song['track']['id']))
+            l.append({info : songs})
+        print(kwargs['user'] + "Playlist")
+        self.info[kwargs['user'] + "Playlist"] = l
+        
+
+
+    def get_myplaylist(self, *args, **kwargs):
         
         playlist = []
 
@@ -65,6 +86,47 @@ class Spot():
             argl = [v for v in args]
             print(argl)
             for pl in self.info["myPlaylists"]:
+                dtup = [*pl]
+                dtup = dtup[0]
+                dtup = [dtup[i] for i in range(len(dtup))]
+                if dtup[0] in argl or dtup[1] in argl:
+                    if  'uri' not in kwargs or kwargs['uri'] == False:
+                        del dtup[2]
+                    if 'id' not in kwargs or kwargs['id'] == False:
+                        del dtup[1]
+                    tmpl = [l for l in pl.values()]
+                    playlist.append([dtup, tmpl])
+                else:
+                    pass
+            return playlist
+
+
+    def get_userplaylist(self, *args, **kwargs):
+        
+        playlist = []
+
+        if len(args) == 0:
+            try: 
+                for pl in self.info[kwargs['user'] + "Playlist"]:
+                    dtup = [*pl]
+                    dtup = dtup[0]
+                    dtup = [dtup[i] for i in range(len(dtup))]
+                    if  'uri' not in kwargs or kwargs['uri'] == False:
+                        del dtup[2]
+                    if 'id' not in kwargs or kwargs['id'] == False:
+                        del dtup[1]
+                    tmpl = [l for l in pl.values()]
+                    playlist.append([dtup, tmpl])
+                return playlist
+            except:
+                try:
+                    print("{}'s Playlist Does Not Exist".format(kwargs['user']))
+                except:
+                    print("User Not Specified")
+        else:
+            argl = [v for v in args]
+            print(argl)
+            for pl in self.info[kwargs['user'] + "Playlist"]:
                 dtup = [*pl]
                 dtup = dtup[0]
                 dtup = [dtup[i] for i in range(len(dtup))]
