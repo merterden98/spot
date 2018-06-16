@@ -9,6 +9,21 @@ import types
 #1295709267
 
 
+class Playlist():
+
+    def __init__(self, user_id=None, playlist_id=None, playlist_name="Does Not Exist", tracks=[]):
+        self.user_id = user_id
+        self.playlist_id = playlist_id
+        self.playlist_name = playlist_name
+        self.tracks = tracks
+
+    def __str__(self):
+        return "Playlist Object\nUser Id {}\nPlaylist Id {}\nPlaylist Name {}".format(self.user_id,\
+        self.playlist_id, self.playlist_name)
+
+
+
+
 class Spot():
 
     def __init__(self, username):
@@ -23,6 +38,10 @@ class Spot():
         self.sp = spotipy.Spotify(auth=self.token)
         self.info = {}
 
+    def __str__(self):
+        return "Spot Object: \nUser: {}\n".format(self.username) +\
+        "Scope {}\n".format(self.scope) +\
+        "Token {}\n".format(self.token)
     def __repr__(self):
         return "Spot Object: \nUser: {}\n".format(self.username) +\
         "Scope {}\n".format(self.scope) +\
@@ -33,13 +52,23 @@ class Spot():
         playlists = self.sp.current_user_playlists()
         l = []
         for items in playlists['items']:
-            info = (items['name'], items['id'], items['uri'])
+           # info = (items['name'], items['id'], items['uri'])
             id = splicename(items['uri'])
             tracks = self.sp.user_playlist_tracks(id, items['id'])
             songs = []
-            for song in tracks['items']:
-                songs.append((song['track']['name'], song['track']['id']))
-            l.append({info : songs})
+            totalS = items['tracks']['total']
+            
+            for i in range(0,totalS,50):
+
+                for song in tracks['items']:
+                    songs.append((song['track']['name'], song['track']['id']))
+                
+                if i % 50 == 0:
+                    tracks = self.sp.user_playlist_tracks(id, items['id'], offset=i)
+
+
+            pl = Playlist(id, items['id'], items['name'], songs)
+            l.append(pl)
         self.info["myPlaylists"] = l
 
     def user_playlists(self, **kwargs):
@@ -47,55 +76,45 @@ class Spot():
         playlists = self.sp.user_playlists(user=kwargs['user'])
         l = []
         for items in playlists['items']:
-            info = (items['name'], items['id'], items['uri'])
+            #info = (items['name'], items['id'], items['uri'])
             id = splicename(items['uri'])
             tracks = self.sp.user_playlist_tracks(id, items['id'])
             songs = []
-            for song in tracks['items']:
-                if song['track'] is None:
-                    pass
-                else:
-                    songs.append((song['track']['name'], song['track']['id']))
-            l.append({info : songs})
-        print(kwargs['user'] + "Playlist")
+            totalS = items['tracks']['total']
+            
+            for i in range(0,totalS,50):
+
+                for song in tracks['items']:
+                    if song['track'] is None:
+                        pass
+                    else:
+                        songs.append((song['track']['name'], song['track']['id']))                
+                
+                if i % 50 == 0:
+                    tracks = self.sp.user_playlist_tracks(id, items['id'], offset=i)
+
+            pl = Playlist(id, items['id'], items['name'])
+            l.append(pl)
         self.info[kwargs['user'] + "Playlist"] = l
         
 
-
     def get_myplaylist(self, *args, **kwargs):
         
-        playlist = []
+        playlist = []                                                          
 
         if len(args) == 0:
             try: 
                 for pl in self.info["myPlaylists"]:
-                    dtup = [*pl]
-                    dtup = dtup[0]
-                    dtup = [dtup[i] for i in range(len(dtup))]
-                    if  'uri' not in kwargs or kwargs['uri'] == False:
-                        del dtup[2]
-                    if 'id' not in kwargs or kwargs['id'] == False:
-                        del dtup[1]
-                    tmpl = [l for l in pl.values()]
-                    playlist.append([dtup, tmpl])
+                    playlist.append(pl)
                 return playlist
             except:
                 print("Playlist Instance Does not Exist")
         
         else:
             argl = [v for v in args]
-            print(argl)
             for pl in self.info["myPlaylists"]:
-                dtup = [*pl]
-                dtup = dtup[0]
-                dtup = [dtup[i] for i in range(len(dtup))]
-                if dtup[0] in argl or dtup[1] in argl:
-                    if  'uri' not in kwargs or kwargs['uri'] == False:
-                        del dtup[2]
-                    if 'id' not in kwargs or kwargs['id'] == False:
-                        del dtup[1]
-                    tmpl = [l for l in pl.values()]
-                    playlist.append([dtup, tmpl])
+                if pl.playlist_id in argl or pl.playlist_name in argl:
+                    playlist.append(pl)
                 else:
                     pass
             return playlist
@@ -108,15 +127,7 @@ class Spot():
         if len(args) == 0:
             try: 
                 for pl in self.info[kwargs['user'] + "Playlist"]:
-                    dtup = [*pl]
-                    dtup = dtup[0]
-                    dtup = [dtup[i] for i in range(len(dtup))]
-                    if  'uri' not in kwargs or kwargs['uri'] == False:
-                        del dtup[2]
-                    if 'id' not in kwargs or kwargs['id'] == False:
-                        del dtup[1]
-                    tmpl = [l for l in pl.values()]
-                    playlist.append([dtup, tmpl])
+                    playlist.append(pl)
                 return playlist
             except:
                 try:
@@ -125,21 +136,14 @@ class Spot():
                     print("User Not Specified")
         else:
             argl = [v for v in args]
-            print(argl)
             for pl in self.info[kwargs['user'] + "Playlist"]:
-                dtup = [*pl]
-                dtup = dtup[0]
-                dtup = [dtup[i] for i in range(len(dtup))]
-                if dtup[0] in argl or dtup[1] in argl:
-                    if  'uri' not in kwargs or kwargs['uri'] == False:
-                        del dtup[2]
-                    if 'id' not in kwargs or kwargs['id'] == False:
-                        del dtup[1]
-                    tmpl = [l for l in pl.values()]
-                    playlist.append([dtup, tmpl])
+                if pl.playlist_id in argl or pl.playlist_name in argl:
+                    playlist.append(pl)
                 else:
                     pass
             return playlist
+
+
 
 
 def splicename(uri):
