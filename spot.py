@@ -11,15 +11,32 @@ import types
 
 class Playlist():
 
-    def __init__(self, user_id=None, playlist_id=None, playlist_name="Does Not Exist", tracks=[]):
+    def __init__(self, user_id=None, playlist_id=None, playlist_name="Does Not Exist", tracks=[], spotipy=None):
         self.user_id = user_id
         self.playlist_id = playlist_id
         self.playlist_name = playlist_name
         self.tracks = tracks
+        self.s = spotipy
 
     def __str__(self):
         return "Playlist Object\nUser Id {}\nPlaylist Id {}\nPlaylist Name {}".format(self.user_id,\
         self.playlist_id, self.playlist_name)
+
+    def add_tracks(self, tracks):
+        #track is either track id, url or uri
+        ##TODO Update self.tracks
+        return self.s.user_playlist_add_tracks(self.user_id, self.playlist_id, tracks)    
+
+    def replace_tracks(self, tracks):
+        ##TODO Update self.tracks
+        return self.s.user_playlist_replace_tracks(self.user_id, self.playlist_id, tracks)
+
+    def remove_tracks(self, tracks):
+        ##TODO Update self.tracks
+        return self.s.user_playlist_remove_all_occurences_of_tracks(self.user_id, self.playlist_id, tracks)
+
+    
+
 
 
 
@@ -57,7 +74,8 @@ class Spot():
             tracks = self.sp.user_playlist_tracks(id, items['id'])
             songs = []
             totalS = items['tracks']['total']
-            
+            pprint.pprint(items)
+           #pl break
             for i in range(0,totalS,50):
 
                 for song in tracks['items']:
@@ -67,7 +85,7 @@ class Spot():
                     tracks = self.sp.user_playlist_tracks(id, items['id'], offset=i)
 
 
-            pl = Playlist(id, items['id'], items['name'], songs)
+            pl = Playlist(id, items['id'], items['name'], songs, self.sp)
             l.append(pl)
         self.info["myPlaylists"] = l
 
@@ -93,7 +111,7 @@ class Spot():
                 if i % 50 == 0:
                     tracks = self.sp.user_playlist_tracks(id, items['id'], offset=i)
 
-            pl = Playlist(id, items['id'], items['name'])
+            pl = Playlist(id, items['id'], items['name'], self.sp)
             l.append(pl)
         self.info[kwargs['user'] + "Playlist"] = l
         
@@ -142,6 +160,9 @@ class Spot():
                 else:
                     pass
             return playlist
+
+#    def create_playlist(self, name, user=self.username, public=True, description):
+#        pass
 
 
 
