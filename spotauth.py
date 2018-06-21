@@ -7,11 +7,6 @@ import webbrowser
 import base64
 import urllib.request
 
-# RURI = 'https://example.com/callback/'
-
-# CLIENTID = 'abdd03cd5c1c4dc79d15cbf50b0641ad'
-
-# CSE = '5b1d951d01464ccea685a5fc35977d33'
 
 
 class SpotAuth():
@@ -30,8 +25,11 @@ class SpotAuth():
         webbrowser.open(url)
         code = input()
         response = get_token(response=code, client_id=self.clientid, redirect_uri=self.redirect, secret=self.clientsecret)
-        print(response)
+        #print(response)
         return response.json()['access_token']
+
+    def _gettoken(self):
+        return self.token
 
     
 def auth_url(client_id, redirect_uri):
@@ -63,4 +61,3 @@ def get_token(response=None, client_id=None, redirect_uri=None, secret=None):
     return r
 
 
-s = SpotAuth(clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')

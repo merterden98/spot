@@ -5,6 +5,7 @@ import pprint
 import json
 import os
 import types
+import spotback
 
 #1295709267
 
@@ -43,7 +44,7 @@ class Playlist():
 
 class Spot():
 
-    def __init__(self, username):
+    def __init__(self, username, clientid=None, clientsecret=None, redirect=None):
         self.username = username
         self.scope = 'user-read-private user-modify-playback-state'+\
             ' user-read-recently-played user-read-playback-state'+\
@@ -51,8 +52,9 @@ class Spot():
             ' user-read-currently-playing user-top-read playlist-modify-private '+\
             ' playlist-read-collaborative'
         
-        self.token = util.prompt_for_user_token(self.username, self.scope,client_id='abdd03cd5c1c4dc79d15cbf50b0641ad', client_secret='5b1d951d01464ccea685a5fc35977d33', redirect_uri='https://example.com/callback/')
-        self.sp = spotipy.Spotify(auth=self.token)
+        #self.token = util.prompt_for_user_token(self.username, self.scope,client_id='abdd03cd5c1c4dc79d15cbf50b0641ad', client_secret='5b1d951d01464ccea685a5fc35977d33', redirect_uri='https://example.com/callback/')
+        #self.sp = spotipy.Spotify(auth=self.token)
+        self.sb = spotback.SpotBack(clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
         self.info = {}
 
     def __str__(self):
@@ -66,15 +68,15 @@ class Spot():
 
     #Parses Through returned JSON to add to myPlaylist info Dict
     def my_playlists(self, **kwargs):
-        playlists = self.sp.current_user_playlists()
+        playlists = self.sb.get_my_playlist()
         l = []
+
         for items in playlists['items']:
            # info = (items['name'], items['id'], items['uri'])
             id = splicename(items['uri'])
-            tracks = self.sp.user_playlist_tracks(id, items['id'])
+            tracks = self.sb.get_tracks(id, items['id'])
             songs = []
             totalS = items['tracks']['total']
-            pprint.pprint(items)
            #pl break
             for i in range(0,totalS,50):
 
@@ -82,10 +84,10 @@ class Spot():
                     songs.append((song['track']['name'], song['track']['id']))
                 
                 if i % 50 == 0:
-                    tracks = self.sp.user_playlist_tracks(id, items['id'], offset=i)
+                    tracks = self.sb.get_tracks(id, items['id'], offset=i)
 
 
-            pl = Playlist(id, items['id'], items['name'], songs, self.sp)
+            pl = Playlist(id, items['id'], items['name'], songs, self.sb)
             l.append(pl)
         self.info["myPlaylists"] = l
 
@@ -176,7 +178,7 @@ def splicename(uri):
         return concaturi
         
 
-s = Spot("1295709267")
+s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
         
         
     
