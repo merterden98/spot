@@ -12,12 +12,12 @@ import spotback
 
 class Playlist():
 
-    def __init__(self, user_id=None, playlist_id=None, playlist_name="Does Not Exist", tracks=[], spotipy=None):
+    def __init__(self, user_id=None, playlist_id=None, playlist_name="Does Not Exist", tracks=[], sb=None):
         self.user_id = user_id
         self.playlist_id = playlist_id
         self.playlist_name = playlist_name
         self.tracks = tracks
-        self.s = spotipy
+        self.s = sb
 
     def __str__(self):
         return "Playlist Object\nUser Id {}\nPlaylist Id {}\nPlaylist Name {}".format(self.user_id,\
@@ -26,7 +26,23 @@ class Playlist():
     def add_tracks(self, tracks):
         #track is either track id, url or uri
         ##TODO Update self.tracks
-        return self.s.user_playlist_add_tracks(self.user_id, self.playlist_id, tracks)    
+
+        #For Id's
+        
+        if type(tracks) == type('str'):
+            track = self.s.single_track(tracks)
+            self.tracks.append((track['name'],track['id']))
+
+        else:
+            pl = []
+            for track in tracks:
+                track = self.s.single_track(tracks)
+                pl.append((track['name'],track['id']))
+
+            self.tracks = self.tracks + pl
+            print(self.tracks)
+        
+        #return self.s.user_playlist_add_tracks(self.user_id, self.playlist_id, tracks)    
 
     def replace_tracks(self, tracks):
         ##TODO Update self.tracks
@@ -66,6 +82,13 @@ class Spot():
         "Scope {}\n".format(self.scope) +\
         "Token {}\n".format(self.token)
 
+
+    """
+        Requests Happen In The Form of Set and Get
+        In Order for get_foo(x), foo(x) needs to be called
+    """
+    
+
     #Parses Through returned JSON to add to myPlaylist info Dict
     def my_playlists(self, **kwargs):
         playlists = self.sb.get_my_playlist()
@@ -91,14 +114,15 @@ class Spot():
             l.append(pl)
         self.info["myPlaylists"] = l
 
-    def user_playlists(self, **kwargs):
+    #Parses Through returned JSON to add to a user info dict
+    def user_playlists(self, user_id=None):
         #assert('user' in kwargs == False)
-        playlists = self.sp.user_playlists(user=kwargs['user'])
+        playlists = self.sb.get_user_playlists(user_id)
         l = []
         for items in playlists['items']:
             #info = (items['name'], items['id'], items['uri'])
             id = splicename(items['uri'])
-            tracks = self.sp.user_playlist_tracks(id, items['id'])
+            tracks = self.sb.get_tracks(id, items['id'])
             songs = []
             totalS = items['tracks']['total']
             
@@ -111,14 +135,14 @@ class Spot():
                         songs.append((song['track']['name'], song['track']['id']))                
                 
                 if i % 50 == 0:
-                    tracks = self.sp.user_playlist_tracks(id, items['id'], offset=i)
+                    tracks = self.sb.get_tracks(id, items['id'], offset=i)
 
-            pl = Playlist(id, items['id'], items['name'], self.sp)
+            pl = Playlist(id, items['id'], items['name'], songs, self.sb)
             l.append(pl)
-        self.info[kwargs['user'] + "Playlist"] = l
+        self.info[user_id + "Playlist"] = l
         
 
-    def get_myplaylist(self, *args, **kwargs):
+    def get_myplaylists(self, *args, **kwargs):
         
         playlist = []                                                          
 
@@ -140,7 +164,7 @@ class Spot():
             return playlist
 
 
-    def get_userplaylist(self, *args, **kwargs):
+    def get_userplaylists(self, *args, **kwargs):
         
         playlist = []
 
@@ -178,7 +202,10 @@ def splicename(uri):
         return concaturi
         
 
-s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
-        
+# s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
+# s.my_playlists()
+# pl = s.get_myplaylists()
+# p = pl[1]
+# p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
         
     

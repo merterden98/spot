@@ -6,8 +6,10 @@ import six.moves.urllib.parse as urllibparse
 import webbrowser
 import base64
 import urllib.request
+import os.path
 
-
+#TODO Make sure to put a delay on auth token generation,
+#Possibly make sure to ping more than once
 
 class SpotAuth():
 
@@ -19,18 +21,44 @@ class SpotAuth():
 
     def _token(self):
 
-        url = auth_url(self.clientid, self.redirect)
-        print("You Are Being Redirected to login to Spotfiy")
-        print("Please Copy and Paste Redirected Link")
-        webbrowser.open(url)
-        code = input()
-        response = get_token(response=code, client_id=self.clientid, redirect_uri=self.redirect, secret=self.clientsecret)
-        #print(response)
-        return response.json()['access_token']
+        if os.path.exists('.spotcache'):  
+            with open('.spotcache', 'r+') as file:
+                token = file.readline()
+                
+                if self._valid_token(token):
+                    return token
+                
+                else:
+                    url = auth_url(self.clientid, self.redirect)
+                    print("You Are Being Redirected to login to Spotfiy")
+                    print("Please Copy and Paste Redirected Link")
+                    webbrowser.open(url)
+                    code = input()
+                    response = get_token(response=code, client_id=self.clientid, redirect_uri=self.redirect, secret=self.clientsecret)
+                    file.seek(0)
+                    file.write(response.json()['access_token'])
+                    return response.json()['access_token']
+        else:
+            file = open('.spotcache', "w+")
+            url = auth_url(self.clientid, self.redirect)
+            print("You Are Being Redirected to login to Spotfiy")
+            print("Please Copy and Paste Redirected Link")
+            webbrowser.open(url)
+            code = input()
+            response = get_token(response=code, client_id=self.clientid, redirect_uri=self.redirect, secret=self.clientsecret)
+            file.write(response.json()['access_token'])
+            return response.json()['access_token']
 
     def _gettoken(self):
         return self.token
 
+    def _valid_token(self, token):
+        response = requests.get("https://api.spotify.com/v1/me", headers={'Authorization': 'Bearer ' + token})
+
+        if response.status_code == 200:
+            return True
+        else:
+            return False
     
 def auth_url(client_id, redirect_uri):
 
