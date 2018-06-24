@@ -28,6 +28,19 @@ class SpotBack():
         else:
             return requests.get(url, headers=self.authheader).json()
 
+    def add_track_user_playlists(self, user_id, playlist_id, track):
+        url = 'https://api.spotify.com/v1/users/' + user_id + '/playlists/' + playlist_id + '/tracks'
+        headers = self.authheader
+        headers['Accept'] = 'application/json'
+        uri = self.track_uri(track)
+        url = url + "?uris={}".format(uri)
+        print(url)
+        res = requests.post(url,headers=headers)
+        print(res)
+       
+
+    def track_uri(self, track):
+        return "spotify:track:{}".format(track)
 
     def single_track(self, track_id):
         url = "https://api.spotify.com/v1/tracks/{}".format(track_id)

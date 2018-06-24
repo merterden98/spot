@@ -32,15 +32,17 @@ class Playlist():
         if type(tracks) == type('str'):
             track = self.s.single_track(tracks)
             self.tracks.append((track['name'],track['id']))
+            self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
 
         else:
             pl = []
             for track in tracks:
                 track = self.s.single_track(tracks)
                 pl.append((track['name'],track['id']))
+                self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
 
             self.tracks = self.tracks + pl
-            print(self.tracks)
+            
         
         #return self.s.user_playlist_add_tracks(self.user_id, self.playlist_id, tracks)    
 
@@ -202,10 +204,10 @@ def splicename(uri):
         return concaturi
         
 
-# s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
-# s.my_playlists()
-# pl = s.get_myplaylists()
-# p = pl[1]
-# p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
+s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
+s.my_playlists()
+pl = s.get_myplaylists()
+p = pl[1]
+p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
         
     
