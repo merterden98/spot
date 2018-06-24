@@ -24,27 +24,38 @@ class Playlist():
         self.playlist_id, self.playlist_name)
 
     def add_tracks(self, tracks):
-        #track is either track id, url or uri
-        ##TODO Update self.tracks
+        #track is either track id
+        ##TODO 
 
-        #For Id's
-        
+
         if type(tracks) == type('str'):
-            track = self.s.single_track(tracks)
+            t = tracks
+            if (len(tracks) == 22):
+                pass
+            
+            if (len(tracks) == 36):
+                t = tracks[14:]
+               
+            track = self.s.single_track(t)
             self.tracks.append((track['name'],track['id']))
             self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
 
         else:
             pl = []
             for track in tracks:
-                track = self.s.single_track(tracks)
+                t = track
+                if (len(t) == 22):
+                    pass
+            
+                if (len(t) == 36):
+                    t = tracks[14:]
+    
+                track = self.s.single_track(t)
                 pl.append((track['name'],track['id']))
                 self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
 
             self.tracks = self.tracks + pl
             
-        
-        #return self.s.user_playlist_add_tracks(self.user_id, self.playlist_id, tracks)    
 
     def replace_tracks(self, tracks):
         ##TODO Update self.tracks
@@ -52,7 +63,17 @@ class Playlist():
 
     def remove_tracks(self, tracks):
         ##TODO Update self.tracks
-        return self.s.user_playlist_remove_all_occurences_of_tracks(self.user_id, self.playlist_id, tracks)
+
+        if type(tracks) == type('str'):
+            for cur_tracks in self.tracks:
+                if tracks == cur_tracks[1]:
+                    self.s.remove_playlist_track(self.user_id,self.playlist_id,tracks)
+
+        else:
+            for cur_tracks in self.tracks:
+                for rem_tracks in tracks:
+                    if cur_tracks[1] == rem_tracks:
+                         self.s.remove_playlist_track(self.user_id,self.playlist_id,rem_tracks)
 
     
 
@@ -208,6 +229,6 @@ s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret
 s.my_playlists()
 pl = s.get_myplaylists()
 p = pl[1]
-p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
+p.remove_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
         
     
