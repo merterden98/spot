@@ -1,32 +1,34 @@
-import spotipy.oauth2 as oauth2
-import spotipy.util as util
-import spotipy
 import pprint
 import json
 import os
 import types
 import spotback
 
-#1295709267
 
 
 class Playlist():
 
-    def __init__(self, user_id=None, playlist_id=None, playlist_name="Does Not Exist", tracks=[], sb=None):
+    def __init__(self, user_id=None, playlist_id=None, playlist_name="Default", tracks=[], sb=None):
+       
+        assert type(sb) ==type(spotback.SpotBack()), "Need SpotBack Object"
+        assert type(user_id) != type(None), "Need User ID"
+
+
         self.user_id = user_id
-        self.playlist_id = playlist_id
         self.playlist_name = playlist_name
         self.tracks = tracks
         self.s = sb
+        #Checks If We Have to Create A new Playlist
+        self.playlist_id = str(create_playlist(self.user_id, playlist_id, sb, playlist_name))
+
+
+    
 
     def __str__(self):
         return "Playlist Object\nUser Id {}\nPlaylist Id {}\nPlaylist Name {}".format(self.user_id,\
         self.playlist_id, self.playlist_name)
 
     def add_tracks(self, tracks):
-        #track is either track id
-        ##TODO 
-
 
         if type(tracks) == type('str'):
             t = tracks
@@ -35,10 +37,13 @@ class Playlist():
             
             if (len(tracks) == 36):
                 t = tracks[14:]
-               
+            
+            
             track = self.s.single_track(t)
             self.tracks.append((track['name'],track['id']))
             self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
+
+            
 
         else:
             pl = []
@@ -57,10 +62,6 @@ class Playlist():
             self.tracks = self.tracks + pl
             
 
-    def replace_tracks(self, tracks):
-        ##TODO Update self.tracks
-        return self.s.user_playlist_replace_tracks(self.user_id, self.playlist_id, tracks)
-
     def remove_tracks(self, tracks):
         ##TODO Update self.tracks
 
@@ -75,6 +76,13 @@ class Playlist():
                     if cur_tracks[1] == rem_tracks:
                          self.s.remove_playlist_track(self.user_id,self.playlist_id,rem_tracks)
 
+def create_playlist(user_id, playlist_id, s, playlist_name):
+
+    if type(playlist_id) == type(None):
+        return s.create_playlist(user_id, playlist_name)
+        
+    else:
+        return playlist_id
     
 
 
@@ -210,9 +218,6 @@ class Spot():
                     pass
             return playlist
 
-#    def create_playlist(self, name, user=self.username, public=True, description):
-#        pass
-
 
 
 
@@ -226,9 +231,14 @@ def splicename(uri):
         
 
 s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
-s.my_playlists()
-pl = s.get_myplaylists()
-p = pl[1]
-p.remove_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
+#s.my_playlists()
+sb = s.sb
+# pl = s.get_myplaylists()
+# p = pl[1]
+#p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')
+#p.remove_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
         
-    
+p = Playlist(user_id="1295709267", sb=sb, playlist_name="LUHMAO")
+
+for i in range(100):
+    p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')

@@ -34,10 +34,19 @@ class SpotBack():
         header['Content-Type'] = 'application/json'
         packet = {'tracks' : [{'uri': 'spotify:track:{}'.format(track)}]}
         res = requests.delete(url, json=packet, headers=header)
+
+    
+    def create_playlist(self, user_id, name):
+        url = "https://api.spotify.com/v1/users/{}/playlists".format(user_id)
+        header = self.authheader
+        header['Content-Type'] = 'application/json'
+        packet = {'name' : name}
+        res = requests.post(url, json=packet, headers=header)
+        return res.json()['id']
         
 
     def add_track_user_playlists(self, user_id, playlist_id, track):
-        url = 'https://api.spotify.com/v1/users/' + user_id + '/playlists/' + playlist_id + '/tracks'
+        url = 'https://api.spotify.com/v1/users/{}/playlists/{}/tracks'.format(user_id, playlist_id)
         headers = self.authheader
         headers['Accept'] = 'application/json'
         uri = self.track_uri(track)
