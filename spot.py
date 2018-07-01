@@ -41,23 +41,39 @@ class Playlist():
             self.tracks.append((track['name'],track['id']))
             self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
 
+
+        elif isinstance(tracks, Song):
+            track = self.s.single_track(tracks.id)
+            self.tracks.append((track['name'],track['id']))
+            self.more_info_tracks.append(tracks)
+            self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
+            
             
 
         else:
             pl = []
             for track in tracks:
-                t = track
-                if (len(t) == 22):
-                    pass
-            
-                if (len(t) == 36):
-                    t = tracks[14:]
-    
-                track = self.s.single_track(t)
-                pl.append((track['name'],track['id']))
-                self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
+                
+                if isinstance(track, Song):
+                    t = self.s.single_track(track.id)
+                    self.tracks.append((t['name'],t['id']))
+                    self.more_info_tracks.append(track)
+                    self.s.add_track_user_playlists(self.user_id, self.playlist_id, t['id'])
+                
+                else:
+                    t = track
 
-            self.tracks = self.tracks + pl
+
+                    if (len(t) == 22):
+                        pass
+            
+                    if (len(t) == 36):
+                        t = tracks[14:]
+    
+                    track = self.s.single_track(t)
+                    pl.append((track['name'],track['id']))
+                    self.s.add_track_user_playlists(self.user_id, self.playlist_id, track['id'])
+                self.tracks = self.tracks + pl
             
 
     def remove_tracks(self, tracks):
@@ -91,7 +107,15 @@ class Playlist():
         self.s.change_playlist_details(self.user_id, self.playlist_id, **kwargs)
         
 
-        
+    def more_track_info(self):
+
+        tmp = []
+
+        for track in self.tracks:
+            s = Song(track[1], self.s, track[0])
+            tmp.append(s)
+
+        self.more_info_tracks = tmp   
 
         
 
@@ -111,6 +135,12 @@ class Song():
         self.sb = sb
         self.name = name
         self.get_details()
+
+    def __str__(self):
+        return "{}".format(self.name)
+
+    def __repr__(self):
+        return "{}".format(self.name)
 
 
     class Features():
@@ -318,6 +348,7 @@ class Spot():
             
             s = Song(track['id'], self.sb, track['name'])
             return s
+        
         else:
             pl = []
             for track in tracks:
@@ -345,12 +376,12 @@ def splicename(uri):
         
 
 s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
-#s.my_playlists()
-sb = s.sb
+s.my_playlists()
+#sb = s.sb
 
 song = s.get_track('2gfBV96ou2PCp0VhvddOVQ')
-# pl = s.get_myplaylists()
-# p = pl[1]
+pl = s.get_myplaylists()
+p = pl[1]
 #p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')
 #p.remove_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
         
