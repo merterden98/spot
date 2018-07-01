@@ -53,7 +53,14 @@ class SpotBack():
         url = url + "?uris={}".format(uri)
         res = requests.post(url,headers=headers)
         
-       
+
+    def change_playlist_details(self, user_id, playlist_id, **kwargs):
+        url = "https://api.spotify.com/v1/users/{}/playlists/{}".format(user_id,playlist_id)
+        headers = self.authheader
+        headers['Accept'] = 'application/json'
+        res = requests.put(url, json=kwargs, headers=headers)
+        
+    
 
     def track_uri(self, track):
         return "spotify:track:{}".format(track)
@@ -62,5 +69,17 @@ class SpotBack():
         url = "https://api.spotify.com/v1/tracks/{}".format(track_id)
         return requests.get(url, headers=self.authheader).json()
 
+
+    def get_track_features(self, track_id):
+        url = "https://api.spotify.com/v1/audio-features/{}".format(track_id)
+        res = requests.get(url, headers=self.authheader)
+        
+        return res.json()
+
+    def get_audio_analysis(self, track_id):
+        url = 'https://api.spotify.com/v1/audio-analysis/{}'.format(track_id)
+        res = requests.get(url, headers=self.authheader)
+
+        return res.json()        
 
 #s = SpotBack(clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')

@@ -22,8 +22,6 @@ class Playlist():
         self.playlist_id = str(create_playlist(self.user_id, playlist_id, sb, playlist_name))
 
 
-    
-
     def __str__(self):
         return "Playlist Object\nUser Id {}\nPlaylist Id {}\nPlaylist Name {}".format(self.user_id,\
         self.playlist_id, self.playlist_name)
@@ -76,6 +74,27 @@ class Playlist():
                     if cur_tracks[1] == rem_tracks:
                          self.s.remove_playlist_track(self.user_id,self.playlist_id,rem_tracks)
 
+
+    def change_details(self, description=None, public=None, name=None):
+
+        kwargs = {}
+
+        if type(description) != type(None):
+            kwargs['description'] = description
+        
+        if type(public) != type(None):
+            kwargs['public'] = public
+        
+        if type(name) != type(None):
+            kwargs['name'] = name
+
+        self.s.change_playlist_details(self.user_id, self.playlist_id, **kwargs)
+        
+
+        
+
+        
+
 def create_playlist(user_id, playlist_id, s, playlist_name):
 
     if type(playlist_id) == type(None):
@@ -85,6 +104,71 @@ def create_playlist(user_id, playlist_id, s, playlist_name):
         return playlist_id
     
 
+class Song():
+
+    def __init__(self, id, sb, name):
+        self.id = id
+        self.sb = sb
+        self.name = name
+        self.get_details()
+
+
+    class Features():
+
+        def __init__(self, id, sb):
+            self.features = sb.get_track_features(id)
+            self.features.pop('id')
+            self.features.pop('track_href')
+            self.features.pop('uri')
+            self.features.pop('analysis_url')
+            self.features.pop('type')
+        
+        def __getitem__(self, key):
+            return self.features[key]
+
+        def keys(self):
+            return self.features.keys()
+        
+        def values(self):
+            return self.features.values()
+
+        def items(self):
+            return self.features.items()
+
+        
+        def __repr__(self):
+            pprint.pprint(self.features)
+            return ""
+    
+    class Analysis():
+
+        def __init__(self, id, sb):
+            self.audio_analysis = sb.get_audio_analysis(id)
+            self.audio_analysis.pop('meta')
+
+        def __getitem__(self, key):
+            return self.audio_analysis[key]
+
+        def keys(self):
+            return self.audio_analysis.keys()
+        
+        def values(self):
+            return self.audio_analysis.values()
+
+        def items(self):
+            return self.audio_analysis.items()
+
+        def __repr__(self):
+            pprint.pprint(self.audio_analysis)
+            return ""
+    
+    def get_details(self):
+
+        self.features = self.Features(self.id, self.sb)
+        
+        self.audio_analysis = self.Analysis(self.id, self.sb)
+
+    
 
 
 
@@ -219,7 +303,37 @@ class Spot():
             return playlist
 
 
+    def get_track(self, tracks):
+        
+        if type(tracks) == type('str'):
+            t = tracks
+            if (len(tracks) == 22):
+                pass
+            
+            if (len(tracks) == 36):
+                t = tracks[14:]
+            
+            
+            track = self.sb.single_track(t)
+            
+            s = Song(track['id'], self.sb, track['name'])
+            return s
+        else:
+            pl = []
+            for track in tracks:
+                t = track
+                if (len(t) == 22):
+                    pass
+            
+                if (len(t) == 36):
+                    t = tracks[14:]
+    
+                track = self.sb.single_track(t)
+                s = Song(track['id'], self.sb, track['name'])
+                pl.append(s)
 
+            
+            return pl
 
 def splicename(uri):
         concaturi = uri[13:]
@@ -233,12 +347,15 @@ def splicename(uri):
 s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
 #s.my_playlists()
 sb = s.sb
+
+song = s.get_track('2gfBV96ou2PCp0VhvddOVQ')
 # pl = s.get_myplaylists()
 # p = pl[1]
 #p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')
 #p.remove_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
         
-p = Playlist(user_id="1295709267", sb=sb, playlist_name="LUHMAO")
+#p = Playlist(user_id="1295709267", sb=sb, playlist_name="Testing Details")
 
-for i in range(100):
-    p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')
+
+# for i in range(100):
+#     p.add_tracks('2gfBV96ou2PCp0VhvddOVQ')
