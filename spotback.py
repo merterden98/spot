@@ -1,6 +1,7 @@
 from spotauth import SpotAuth
 import requests
 import json
+import pprint
 
 class SpotBack():
 
@@ -80,6 +81,35 @@ class SpotBack():
         url = 'https://api.spotify.com/v1/audio-analysis/{}'.format(track_id)
         res = requests.get(url, headers=self.authheader)
 
+        return res.json()
+
+    def get_artist(self, id):
+
+        url = "https://api.spotify.com/v1/artists/{}".format(id)
+        res = requests.get(url, headers=self.authheader)
+
+        return res.json()
+
+    def get_top_tracks(self, id):
+
+        url = "https://api.spotify.com/v1/artists/{}/top-tracks".format(id)
+        url = url + "?country=US"   
+        res = requests.get(url, headers=self.authheader)
+        return res.json()
+
+    def get_album(self, id):
+        
+        url = "https://api.spotify.com/v1/albums/{}".format(id)
+        res = requests.get(url, headers=self.authheader)
+        
+        return res.json()
+
+    def get_artist_albums(self, id):
+
+        url = "https://api.spotify.com/v1/artists/{}/albums".format(id)
+        res = requests.get(url, headers=self.authheader)
+
         return res.json()        
+
 
 #s = SpotBack(clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')

@@ -20,6 +20,7 @@ class Playlist():
         self.s = sb
         #Checks If We Have to Create A new Playlist
         self.playlist_id = str(create_playlist(self.user_id, playlist_id, sb, playlist_name))
+        self.more_info_tracks = []
 
 
     def __str__(self):
@@ -83,12 +84,14 @@ class Playlist():
             for cur_tracks in self.tracks:
                 if tracks == cur_tracks[1]:
                     self.s.remove_playlist_track(self.user_id,self.playlist_id,tracks)
+                    self.tracks.pop(cur_tracks)
 
         else:
             for cur_tracks in self.tracks:
                 for rem_tracks in tracks:
                     if cur_tracks[1] == rem_tracks:
                          self.s.remove_playlist_track(self.user_id,self.playlist_id,rem_tracks)
+                         self.tracks.pop(cur_tracks)
 
 
     def change_details(self, description=None, public=None, name=None):
@@ -366,6 +369,90 @@ class Spot():
             
             return pl
 
+    def get_artist(self, id):
+        return Artist(id=id, SpotBack=self.sb)
+
+    def get_album(self, id=None):
+        return Album(id=id, SpotBack=self.sb)
+
+
+class Artist():
+
+    def __init__(self, id=None, SpotBack=None, advanced_album_info=False):
+        
+        artistdata = SpotBack.get_artist(id)
+        self.id = artistdata['id']
+        self.genres = artistdata['genres']
+        self.name = artistdata['name']
+        self.popularity = artistdata['popularity']
+        self.followers = artistdata['followers']['total']
+        self.advanced_album_info = advanced_album_info
+        self.top_tracks = self.get_top_tracks(SpotBack)
+        self.albums = self.get_albums(SpotBack)
+        
+
+    def __repr__(self):
+
+        return "Artist: {}".format(self.id)
+
+    def get_top_tracks(self, SpotBack):
+
+        tracks = SpotBack.get_top_tracks(self.id)
+        
+        top_tracks = []
+
+        for track in tracks['tracks']:
+            
+            song = Song(track['id'], SpotBack, track['name'])
+            top_tracks.append(song)
+
+        return top_tracks
+
+    def get_albums(self, SpotBack):
+        #TODO Make an Album Object
+        album_data = SpotBack.get_artist_albums(self.id)
+        l = []
+
+        if self.advanced_album_info == True:
+        
+            for album in album_data['items']:
+            
+                if type(album) == type(None):
+                    pass
+            
+                else:
+                    a = Album(id=album['id'], SpotBack=SpotBack)
+                    l.append(a)
+                    
+        else:
+            
+            for album in album_data['items']:
+
+                a = (album['name'], album['id'])
+                l.append(a)
+
+        return l
+
+class Album():
+    
+    def __init__(self, id=None, SpotBack=None):
+        album_data = SpotBack.get_album(id)
+        self.name = album_data['name']
+        self.id = album_data['id']
+        self.genres = album_data['genres']
+        self.popularity = album_data['popularity']
+        self.release_date = album_data['release_date']
+        self.tracks = []
+
+        for track in album_data['tracks']['items']:
+            song = Song(track['id'], SpotBack, track['name'])
+            self.tracks.append(song)
+
+    def __repr__(self):
+        return "Album: {}".format(self.name)
+
+
+
 def splicename(uri):
         concaturi = uri[13:]
         i = 0
@@ -375,18 +462,30 @@ def splicename(uri):
         return concaturi
         
 
-s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
-s.my_playlists()
-#sb = s.sb
+#https://open.spotify.com/artist/3lv9GfkVw9I9X4Rgtf2o4r
 
-song = s.get_track('2gfBV96ou2PCp0VhvddOVQ')
-pl = s.get_myplaylists()
-p = pl[1]
+s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
+#s.my_playlists()
+sb = s.sb
+
+#a = Album(id="1xn54DMo2qIqBuMqHtUsFd", SpotBack=sb)
+
+
+#artist = s.get_artist("3TVXtAsR1Inumwj472S9r4")
+
+# song = s.get_track('2gfBV96ou2PCp0VhvddOVQ')
+#pl = s.get_myplaylists()
+# p = pl[1]
 #p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')
 #p.remove_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
-        
+
+
 #p = Playlist(user_id="1295709267", sb=sb, playlist_name="Testing Details")
 
 
 # for i in range(100):
 #     p.add_tracks('2gfBV96ou2PCp0VhvddOVQ')
+
+# cafe = Playlist(user_id="1295709267", sb=s.sb, playlist_name="Bitches Get Stiches")
+
+# song = s.get_track("3BBrd1T2R2m1GzX9dj5ify")
