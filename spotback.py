@@ -109,7 +109,18 @@ class SpotBack():
         url = "https://api.spotify.com/v1/artists/{}/albums".format(id)
         res = requests.get(url, headers=self.authheader)
 
-        return res.json()        
+        return res.json()       
+
+    def get_featured_playlists(self, query=None):
+
+        url = "https://api.spotify.com/v1/browse/featured-playlists"
+
+        if type(query) != type(None):
+            url = url + query
+
+        res = requests.get(url, headers=self.authheader)
+
+        return res.json()         
 
 
 #s = SpotBack(clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')

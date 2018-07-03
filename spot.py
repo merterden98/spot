@@ -20,12 +20,40 @@ class Playlist():
         self.s = sb
         #Checks If We Have to Create A new Playlist
         self.playlist_id = str(create_playlist(self.user_id, playlist_id, sb, playlist_name))
+
+
+        if self.tracks == []:
+            self.tracks = self.get_tracks()
+
         self.more_info_tracks = []
 
 
     def __str__(self):
         return "Playlist Object\nUser Id {}\nPlaylist Id {}\nPlaylist Name {}".format(self.user_id,\
         self.playlist_id, self.playlist_name)
+
+
+    def get_tracks(self):
+
+        tracks = self.s.get_tracks(self.user_id, self.playlist_id)
+        songs = []
+        total = tracks['total']
+        #print(tracks['total'])
+        l = []
+        for i in range(0,total,50):
+
+                for song in tracks['items']:
+                    if song['track'] is None:
+                        pass
+                    else:
+                        songs.append((song['track']['name'], song['track']['id']))                
+                
+                if i % 50 == 0:
+                    tracks = self.s.get_tracks(self.user_id, self.playlist_id, offset=i)
+        
+        return songs
+
+            
 
     def add_tracks(self, tracks):
 
@@ -290,7 +318,30 @@ class Spot():
         self.info[user_id + "Playlist"] = l
         
 
-    def get_myplaylists(self, *args, **kwargs):
+    def get_my_playlists(self, *args, **kwargs):
+
+        playlists = self.sb.get_my_playlist()
+        l = []
+
+        for items in playlists['items']:
+           # info = (items['name'], items['id'], items['uri'])
+            id = splicename(items['uri'])
+            tracks = self.sb.get_tracks(id, items['id'])
+            songs = []
+            totalS = items['tracks']['total']
+           #pl break
+            for i in range(0,totalS,50):
+
+                for song in tracks['items']:
+                    songs.append((song['track']['name'], song['track']['id']))
+                
+                if i % 50 == 0:
+                    tracks = self.sb.get_tracks(id, items['id'], offset=i)
+
+
+            pl = Playlist(id, items['id'], items['name'], songs, self.sb)
+            l.append(pl)
+        self.info["myPlaylists"] = l
         
         playlist = []                                                          
 
@@ -312,8 +363,33 @@ class Spot():
             return playlist
 
 
-    def get_userplaylists(self, *args, **kwargs):
+    def get_user_playlists(self, *args, **kwargs):
         
+
+        playlists = self.sb.get_user_playlists(user_id)
+        l = []
+        for items in playlists['items']:
+            #info = (items['name'], items['id'], items['uri'])
+            id = splicename(items['uri'])
+            tracks = self.sb.get_tracks(id, items['id'])
+            songs = []
+            totalS = items['tracks']['total']
+            
+            for i in range(0,totalS,50):
+
+                for song in tracks['items']:
+                    if song['track'] is None:
+                        pass
+                    else:
+                        songs.append((song['track']['name'], song['track']['id']))                
+                
+                if i % 50 == 0:
+                    tracks = self.sb.get_tracks(id, items['id'], offset=i)
+
+            pl = Playlist(id, items['id'], items['name'], songs, self.sb)
+            l.append(pl)
+        self.info[user_id + "Playlist"] = l
+
         playlist = []
 
         if len(args) == 0:
@@ -376,6 +452,30 @@ class Spot():
         return Album(id=id, SpotBack=self.sb)
 
 
+    def get_featured_playlists(self, locale=None, country=None):
+
+        if (type(locale) == type(None)) and (type(country) == type(None)):
+            pass
+
+        elif type(locale) == type(None):
+            query = "?country={}".format(country)
+        
+        elif type(country) == type(None):
+            query = "?locale={}".format(locale)
+
+        else:
+            query = "?country={}&locale={}".format(country, locale)
+
+        featured_playlists = self.sb.get_featured_playlists()
+
+        f = []
+
+        for pl in featured_playlists['playlists']['items']:
+            tmp = Playlist(playlist_name=pl['name'], playlist_id=pl['id'], sb=self.sb, user_id=pl['owner']['display_name'])
+            f.append(tmp)
+
+        return f
+        
 class Artist():
 
     def __init__(self, id=None, SpotBack=None, advanced_album_info=False):
@@ -466,15 +566,15 @@ def splicename(uri):
 
 s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret='5b1d951d01464ccea685a5fc35977d33', redirect='https://example.com/callback/')
 #s.my_playlists()
-sb = s.sb
+#sb = s.sb
 
 #a = Album(id="1xn54DMo2qIqBuMqHtUsFd", SpotBack=sb)
 
-
+pl = s.get_featured_playlists()
 #artist = s.get_artist("3TVXtAsR1Inumwj472S9r4")
 
 # song = s.get_track('2gfBV96ou2PCp0VhvddOVQ')
-#pl = s.get_myplaylists()
+#pl = s.get_my_playlists()
 # p = pl[1]
 #p.add_tracks('6JzzI3YxHCcjZ7MCQS2YS1')
 #p.remove_tracks('6JzzI3YxHCcjZ7MCQS2YS1')        
