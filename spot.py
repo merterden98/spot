@@ -455,7 +455,32 @@ class Spot():
     def get_featured_playlists(self, locale=None, country=None):
 
         if (type(locale) == type(None)) and (type(country) == type(None)):
-            pass
+            featured_playlists = self.sb.get_featured_playlists()
+
+        elif type(locale) == type(None):
+            query = "?country={}".format(country)
+            featured_playlists = self.sb.get_featured_playlists(query=query)
+        elif type(country) == type(None):
+            query = "?locale={}".format(locale)
+            featured_playlists = self.sb.get_featured_playlists(query=query)
+        else:
+            query = "?country={}&locale={}".format(country, locale)
+            featured_playlists = self.sb.get_featured_playlists(query=query)
+        
+
+        f = []
+
+        for pl in featured_playlists['playlists']['items']:
+            tmp = Playlist(playlist_name=pl['name'], playlist_id=pl['id'], sb=self.sb, user_id=pl['owner']['display_name'])
+            f.append(tmp)
+
+        return f
+
+
+    def get_categories(self, locale=None, country=None):
+
+        if(type(locale) == type(None)) and (type(country) == type(None)):
+            categories = self.sb.get_categories()
 
         elif type(locale) == type(None):
             query = "?country={}".format(country)
@@ -466,16 +491,38 @@ class Spot():
         else:
             query = "?country={}&locale={}".format(country, locale)
 
-        featured_playlists = self.sb.get_featured_playlists()
+        #print(categories.keys())
 
-        f = []
+        #pprint.pprint(categories['categories']['items'])
 
-        for pl in featured_playlists['playlists']['items']:
-            tmp = Playlist(playlist_name=pl['name'], playlist_id=pl['id'], sb=self.sb, user_id=pl['owner']['display_name'])
-            f.append(tmp)
+        c = []
 
-        return f
-        
+        for category in categories['categories']['items']:
+            c.append(category['id'])
+
+        return c
+
+    def get_category_playlists(self, category_id=None):
+        playlists = self.sb.get_category_playlists(id=category_id)
+
+
+    def search(self, query=None, type=None):
+
+        js = self.sb.search(query=query, type=type)
+
+        if type == 'track':
+            tracks = []
+            for track in js['tracks']['items']:
+                artists = []
+                for artist in track['artists']:
+                    artists.append(artist['name'])
+                
+                tracks.append((artists, track['name'], track['id']))
+                #print(track['album']['name'])
+                #print(track['artists'])
+            
+            return tracks
+
 class Artist():
 
     def __init__(self, id=None, SpotBack=None, advanced_album_info=False):
@@ -570,7 +617,12 @@ s = Spot("1295709267", clientid='abdd03cd5c1c4dc79d15cbf50b0641ad', clientsecret
 
 #a = Album(id="1xn54DMo2qIqBuMqHtUsFd", SpotBack=sb)
 
-pl = s.get_featured_playlists()
+#pl = s.get_categories()
+#pl = s.get_category_playlists(category_id='gaming')
+
+p = s.search(query='17 Youth Lagoon',type='track')
+
+song = Song(p[0][2], s.sb, p[0][1])
 #artist = s.get_artist("3TVXtAsR1Inumwj472S9r4")
 
 # song = s.get_track('2gfBV96ou2PCp0VhvddOVQ')
