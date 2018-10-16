@@ -1,3 +1,3 @@
-###Lightweight Spotify Api Wrapper ###
+### Lightweight Spotify Api Wrapper ###
 
 Further Documentation Coming Soon
